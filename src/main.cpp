@@ -10,10 +10,14 @@
 
 #include "igrill-config.h"
 
+#include "output/output.h"
+
 SYSTEM_MODE(IG2C_SYSTEM_MODE)
 
-void setup() {
+static CircularBuffer<Measurement> measurementBuffer(20);
 
+void setup() {
+    output_setup();
 }
 
 void loop() {

@@ -9,6 +9,54 @@
  *
  */
 
-#include "igrill-config.h"
-#include "output/cellular.h"
+#include "Particle.h"
 
+#include "igrill-config.h"
+
+#if IG2C_OUTPUT_CELLULAR
+
+#include "output/output.h"
+
+static TCPClient clientConn;
+
+void output_setup() {
+    if (Cellular.getActiveSim() != IG2C_SIM_LOCATION) {
+        Cellular.setActiveSim(IG2C_SIM_LOCATION);
+
+        if (IG2C_SIM_LOCATION == EXTERNAL_SIM) {
+            Cellular.setCredentials(IG2C_CELL_SIM_APN_NAME, IG2C_CELL_SIM_APN_USERNAME, IG2C_CELL_SIM_APN_PASSWORD);
+        }
+    }
+
+    Cellular.on();
+    Cellular.connect();
+}
+
+void output_data(CircularBuffer<Measurement>& buffer) {
+    if (!Cellular.ready()) {
+        DEBUG("Cell connection not ready, can't send data");
+        return;
+    }
+
+    if (!clientConn.connected() || !clientConn.status()) {
+        bool connected = clientConn.connect(IG2C_CELL_GRAPHITE_SERVER, IG2C_CELL_GRAPHITE_PORT);
+        if (!connected) return;
+    }
+
+    Measurement* meas = buffer.ReadElement();
+    int err = 0;
+    while (meas != nullptr) {
+        String measStr = meas.toGraphite();
+        client_conn.write(measStr.c_str(), measStr.length());
+        err = client_conn.getWriteError();
+        if (err != 0) {
+            DEBUG("TCP Write Error");
+            DEBUG(err);
+            client_conn.stop();
+            return;
+        }
+        meas = buffer.ReadElement();
+    }
+}
+
+#endif // IG2C_OUTPUT_CELLULAR
