@@ -35,6 +35,8 @@ public:
         return 0;
     }
 
+    virtual size_t GetDeviceName(char* buffer, size_t max_len) = 0;
+    virtual size_t GetChannelName(uint8_t chanIndex, char* buffer, size_t max_len) = 0;
 protected:
     uint8_t m_index;
 

@@ -26,6 +26,8 @@ void setup() {
 
     memset(inputArray, 0, IG2C_MAX_INPUT_DEVICES * sizeof(void*));
     inputArray[0] = new DummyInput(0, 250, 1);
+
+    Measurement::setInputArray(inputArray);
 }
 
 void loop() {

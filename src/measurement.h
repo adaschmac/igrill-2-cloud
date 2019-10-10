@@ -13,19 +13,21 @@
 #include "string.h"
 #include "stdio.h"
 
-struct Measurement {
+class Input;
+
+class Measurement {
+public:
     uint32_t timestamp;
     uint8_t device_id;
     uint8_t channel_id;
     char data[16];
 
-    size_t toGraphite(char* buffer, size_t max_len) {
-        size_t requiredLength = System.deviceID().length() + strlen(data) + 32;
-        if (max_len < requiredLength) return 0;
+    size_t toGraphite(char* buffer, size_t max_len);
 
-        snprintf(buffer, max_len, "%s.%d.%d %s %lu\r\n", System.deviceID().c_str(), device_id, channel_id, data, timestamp);
-        return strlen(buffer);
-    }
+    static void setInputArray(Input** array) { m_inputData = array; };
+
+private:
+    static Input** m_inputData;
 };
 
 #endif // IG2C_MEASUREMENT_H
