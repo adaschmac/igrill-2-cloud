@@ -16,6 +16,7 @@ SYSTEM_MODE(MANUAL);
 
 #include "output/output.h"
 #include "input/dummy_input.h"
+#include "input/igrill_scanner_input.h"
 #include "input/input.h"
 
 static CircularBuffer<Measurement> measurementBuffer(IG2C_MEAS_BUFFER_SIZE);
@@ -25,7 +26,8 @@ void setup() {
     output_setup();
 
     memset(inputArray, 0, IG2C_MAX_INPUT_DEVICES * sizeof(void*));
-    inputArray[0] = new DummyInput(0, 250, 1);
+    inputArray[0] = new DummyInput(0, 5000, 1);
+    inputArray[1] = new iGrillScannerInput(1, 1500);
 
     Measurement::setInputArray(inputArray);
 }
