@@ -3,28 +3,33 @@
  * it to the cloud for worldwide monitoring.
  *
  * serial.cpp - output measurement data over the USB serial connection
- * 
+ *
  */
 
 #include "Particle.h"
 
-#include "igrill-config.h"
+#include "../igrill-config.h"
 
 #if IG2C_OUTPUT_SERIAL
 
 #include "output/output.h"
 
-static TCPClient clientConn;
+char lineBuffer[128];
 
 void output_setup() {
+    Serial.blockOnOverrun(true);
     Serial.begin(IG2C_SERIAL_BAUD);
 }
 
 void output_data(CircularBuffer<Measurement>& buffer) {
     Measurement* meas = buffer.ReadElement();
     while (meas != nullptr) {
-        String measStr = meas.toGraphite();
-        Serial.write(measStr.c_str(), measStr.length());
+        size_t written = meas->toGraphite(lineBuffer, 128);
+
+        if (written > 0) {
+            Serial.write((const uint8_t*)lineBuffer, written);
+        }
+
         meas = buffer.ReadElement();
     }
 }

@@ -6,8 +6,6 @@
 #ifndef IG2C_CONFIG
 #define IG2C_CONFIG
 
-#define IG2C_SYSTEM_MODE MANUAL
-
 // Only one of these can be set
 #define IG2C_OUTPUT_SERIAL 1
 #define IG2C_OUTPUT_CELLULAR 0
@@ -29,27 +27,34 @@
 #define IG2C_CELL_GRAPHITE_PORT 2003
 #endif
 
-#define IG2C_SERIAL_BAUD 9600
+#define IG2C_SERIAL_BAUD 115200
 
 // Enable debug prints over serial
-#define IG2C_DEBUG 1
+#define IG2C_ENABLE_DEBUG 1
 
 // Connect to every iGrill found and upload their data. Not very friendly if
 // your neighbor has one too.
 #define IG2C_PROMISCUOUS 1
 
-#if IG2C_DEBUG
-# define DEBUG_INIT() DEBUG_INIT(IG2C_SERIAL_BAUD)
-# define DEBUG_INIT(baud) Serial.begin(baud)
-# define DEBUG(msg) \
-    Serial.print("["); \
-    Serial.print(System.millis()); \
-    Serial.print("] "); \
-    Serial.println(msg)
+#define IG2C_MEAS_BUFFER_SIZE 20
+#define IG2C_TICK_TIME_MS 25
+
+#define IG2C_MAX_INPUT_DEVICES 8
+
+#define IG2C_ENABLE_DEBUG_BUFFER 0
+
+#if IG2C_ENABLE_DEBUG
+#include "stdio.h"
+
+# define IG2C_DEBUG_INIT() IG2C_DEBUG_INIT_BAUD(IG2C_SERIAL_BAUD)
+# define IG2C_DEBUG_INIT_BAUD(baud) Serial.begin(baud)
+# define IG2C_DEBUG(msg) { static char debugLineBuffer[256]; size_t len = snprintf(debugLineBuffer, 256, "[%lu] " msg "\r\n", millis()); Serial.write((const uint8_t*)debugLineBuffer, len); }
+# define IG2C_DEBUG_F(msg, ...) { static char debugLineBuffer[256]; size_t len = snprintf(debugLineBuffer, 256, "[%lu] " msg "\r\n", millis(), __VA_ARGS__); Serial.write((const uint8_t*)debugLineBuffer, len); }
 #else
-# define DEBUG_INIT()
-# define DEBUG_INIT(baud)
-# define DEBUG(msg)
-#endif IG2C_DEBUG
+# define IG2C_DEBUG_INIT()
+# define IG2C_DEBUG_INIT_BAUD(baud)
+# define IG2C_DEBUG(msg)
+# define IG2C_DEBUG_F(msg, ...)
+#endif // IG2C_ENABLE_DEBUG
 
 #endif // IG2C_CONFIG

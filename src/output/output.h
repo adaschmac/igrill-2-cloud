@@ -9,8 +9,8 @@
 #ifndef IG2C_OUTPUT_H
 #define IG2C_OUTPUT_H
 
-#include "circular_buffer.h"
-#include "measurement.h"
+#include "../circular_buffer.h"
+#include "../measurement.h"
 
 void output_setup();
 void output_data(CircularBuffer<Measurement>& buffer);
