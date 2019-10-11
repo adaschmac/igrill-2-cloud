@@ -16,6 +16,13 @@
 #include "../circular_buffer.h"
 #include "../measurement.h"
 
+enum InputClassType {
+    Base,
+    Dummy,
+    Scanner,
+    iGrill
+};
+
 class Input {
 public:
     Input(uint8_t inputIndex, uint32_t inputPeriodMs)
@@ -26,9 +33,15 @@ public:
 
     virtual ~Input() {}
 
+    virtual InputClassType Type() { return InputClassType::Base; }
+
+    virtual bool IsReady() {
+        return true;
+    }
+
     size_t Read(CircularBuffer<Measurement>& buffer) {
         uint64_t ms = millis();
-        if (ms > m_nextReadTime) {
+        if (ms > m_nextReadTime && IsReady()) {
             m_nextReadTime = ms + m_period;
             return ReadInternal(buffer, Time.now());
         }

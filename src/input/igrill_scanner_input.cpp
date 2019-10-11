@@ -7,14 +7,18 @@
  */
 
 #include "input/igrill_scanner_input.h"
+#include "input/igrill_input.h"
 
 static const char* sScannerName = "scanner";
-static const char* sChanNames[] = { "mac", "name", "rssi" };
+static const char* sChanNames[] = { "mac", "name", "rssi", "status" };
+
+static const char* sInputStatus[] = { "not_added", "added", "not_ready", "ready" };
 
 static BleScanResult scanResults[IG2C_BLE_SCAN_RESULT_MAX];
 
-iGrillScannerInput::iGrillScannerInput(uint8_t inputIndex, uint32_t inputPeriodMs)
-    : Input(inputIndex, inputPeriodMs)
+iGrillScannerInput::iGrillScannerInput(uint8_t inputIndex, uint32_t inputPeriodMs, Input** inputArray)
+    : Input(inputIndex, inputPeriodMs),
+      m_inputs(inputArray)
 {
     BLE.setScanTimeout(IG2C_BLE_SCAN_TIMEOUT_TENS_OF_MS);
 }
@@ -53,7 +57,47 @@ size_t iGrillScannerInput::ReadInternal(CircularBuffer<Measurement>& buffer, uin
             m.channel_id = 2;
             snprintf(m.data, 16, "%d", scanResults[i].rssi);
             chansWritten += buffer.WriteElement(m);
+
+            InputStatus status = CheckAndAddInput(scanResults[i]);
+            m.channel_id = 3;
+            strncpy(m.data, sInputStatus[status], 16);
+            chansWritten += buffer.WriteElement(m);
         }
     }
     return chansWritten;
+}
+
+iGrillScannerInput::InputStatus iGrillScannerInput::CheckAndAddInput(const BleScanResult& result) {
+    int ble_devices = 0;
+    uint8_t first_null_idx = -1;
+
+    for (int i=0; i<IG2C_MAX_INPUT_DEVICES; ++i) {
+        if (m_inputs[i] != nullptr && m_inputs[i]->Type() == InputClassType::iGrill) {
+            iGrillInput* castInput = (iGrillInput*)m_inputs[i];
+            if (result.address == castInput->GetAddress()) {
+                return castInput->IsReady() ? InputStatus::Ready : InputStatus::NotReady;
+            }
+            else
+            {
+                ble_devices++;
+            }
+        }
+        else if (m_inputs[i] == nullptr && first_null_idx == -1)
+        {
+            first_null_idx = i;
+        }
+    }
+
+    if (ble_devices >= IG2C_MAX_BLE_DEVICES) {
+        IG2C_DEBUG_F("Not adding device because there are already %d present.", ble_devices);
+        return InputStatus::NotAdded;
+    }
+
+    if (first_null_idx == -1) {
+        IG2C_DEBUG("Not adding device because there are no empty device slots.");
+        return InputStatus::NotAdded;
+    }
+
+    m_inputs[first_null_idx] = new iGrillInput(first_null_idx, 2500, result.address, result.advertisingData.deviceName());
+    return InputStatus::Added;
 }

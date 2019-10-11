@@ -15,6 +15,7 @@ SYSTEM_MODE(MANUAL);
 #include "circular_buffer.h"
 
 #include "output/output.h"
+
 #include "input/dummy_input.h"
 #include "input/igrill_scanner_input.h"
 #include "input/input.h"
@@ -27,7 +28,7 @@ void setup() {
 
     memset(inputArray, 0, IG2C_MAX_INPUT_DEVICES * sizeof(void*));
     inputArray[0] = new DummyInput(0, 5000, 1);
-    inputArray[1] = new iGrillScannerInput(1, 1500);
+    inputArray[1] = new iGrillScannerInput(1, 1500, inputArray);
 
     Measurement::setInputArray(inputArray);
 }

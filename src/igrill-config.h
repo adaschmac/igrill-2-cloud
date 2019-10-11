@@ -45,6 +45,9 @@
 #define IG2C_BLE_IGRILL_PREFIX "iGrill"
 #define IG2C_BLE_IGRILL_PREFIX_LEN 5
 
+// Documentation says max 3 BLE devices
+#define IG2C_MAX_BLE_DEVICES 3
+
 /* Misc defines                                           */
 // Number of measurement entries in the circular buffer
 #define IG2C_MEAS_BUFFER_SIZE 20
@@ -65,13 +68,22 @@
 
 # define IG2C_DEBUG_INIT() IG2C_DEBUG_INIT_BAUD(IG2C_SERIAL_BAUD)
 # define IG2C_DEBUG_INIT_BAUD(baud) Serial.begin(baud)
-# define IG2C_DEBUG(msg) { static char debugLineBuffer[256]; size_t len = snprintf(debugLineBuffer, 256, "[%lu] " msg "\r\n", millis()); Serial.write((const uint8_t*)debugLineBuffer, len); }
-# define IG2C_DEBUG_F(msg, ...) { static char debugLineBuffer[256]; size_t len = snprintf(debugLineBuffer, 256, "[%lu] " msg "\r\n", millis(), __VA_ARGS__); Serial.write((const uint8_t*)debugLineBuffer, len); }
+# define IG2C_DEBUG(msg) { static char dLB[256]; size_t l = snprintf(dLB, 256, "[%lu] " msg "\r\n", millis()); Serial.write((const uint8_t*)dLB, l); }
+# define IG2C_DEBUG_F(msg, ...) { static char dLB[256]; size_t l = snprintf(dLB, 256, "[%lu] " msg "\r\n", millis(), __VA_ARGS__); Serial.write((const uint8_t*)dLB, l); }
+# define IG2C_DUMP_UCHAR_16(a) { \
+    static char dLB[512]; \
+    size_t l = snprintf(dLB, 512, "[%lu] %s [ %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ]\r\n", \
+        millis(), \
+        #a, \
+        a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], \
+        a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15]); \
+        Serial.write((const uint8_t*)dLB, l); }
 #else
 # define IG2C_DEBUG_INIT()
 # define IG2C_DEBUG_INIT_BAUD(baud)
 # define IG2C_DEBUG(msg)
 # define IG2C_DEBUG_F(msg, ...)
+# define IG2C_DUMP_UCHAR_16(a)
 #endif // IG2C_ENABLE_DEBUG
 
 #endif // IG2C_CONFIG
