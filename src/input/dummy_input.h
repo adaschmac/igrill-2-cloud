@@ -18,7 +18,10 @@ class DummyInput : public Input {
 public:
     DummyInput(uint8_t inputIndex, uint32_t inputPeriodMs, uint8_t numChans);
     ~DummyInput();
+    virtual InputClassType Type() { return InputClassType::Dummy; }
 
+    virtual size_t GetDeviceName(char* buffer, size_t max_len);
+    virtual size_t GetChannelName(uint8_t chanIndex, char* buffer, size_t max_len);
 private:
     size_t ReadInternal(CircularBuffer<Measurement>& buffer, uint32_t currentTime);
 

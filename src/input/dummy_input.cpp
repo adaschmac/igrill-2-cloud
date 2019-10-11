@@ -9,6 +9,9 @@
 #include "../igrill-config.h"
 #include "dummy_input.h"
 
+static const char* sDummyName = "dummy";
+static const char* sDummyChan = "ch%d";
+
 DummyInput::DummyInput(uint8_t inputIndex, uint32_t inputPeriodMs, uint8_t numChans)
     : Input(inputIndex, inputPeriodMs),
       m_numChans(numChans),
@@ -28,6 +31,14 @@ DummyInput::~DummyInput() {
     free(m_values);
 }
 
+size_t DummyInput::GetDeviceName(char* buffer, size_t max_len) {
+    return strlen(strncpy(buffer, sDummyName, max_len));
+}
+
+size_t DummyInput::GetChannelName(uint8_t chanIndex, char* buffer, size_t max_len) {
+    snprintf(buffer, max_len, sDummyChan, chanIndex);
+    return strlen(buffer);
+}
 
 size_t DummyInput::ReadInternal(CircularBuffer<Measurement>& buffer, uint32_t currentTime) {
     size_t chansWritten = 0;
